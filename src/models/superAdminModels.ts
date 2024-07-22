@@ -1,16 +1,17 @@
-import mongoose, { Document } from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
-
+// Interface to define the structure of SuperAdmin documents in MongoDB
 export interface SuperAdminDocument extends Document {
     name: string;
     email: string;
-    phone_number: string
+    phone_number: string;
 }
 
-const superAdminSchema = new mongoose.Schema({
+// Define the schema for SuperAdmin documents
+const superAdminSchema: Schema<SuperAdminDocument> = new Schema({
     name: {
         type: String,
-        required: true
+        required: true,
     },
     email: {
         type: String,
@@ -19,7 +20,8 @@ const superAdminSchema = new mongoose.Schema({
     phone_number: {
         type: String,
         required: true,
-    }
+    },
 });
 
+// Export the SuperAdmin model
 export default mongoose.model<SuperAdminDocument>("SuperAdmin", superAdminSchema);

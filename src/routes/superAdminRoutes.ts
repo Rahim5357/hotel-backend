@@ -3,7 +3,7 @@ import { superAdminLogin, superAdminCreate } from "../controllers/superAdminCont
 
 const router: Router = express.Router();
 
-router.post("/superAdmin/login", superAdminLogin);
-router.post("/superAdmin/create", superAdminCreate);
+router.post("/login", superAdminLogin);
+router.post("/create", superAdminCreate);
 
 export default router;
