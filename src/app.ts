@@ -1,16 +1,18 @@
 const express = require("express");
+import { Request, Response } from "express";
 const cors = require("cors");
 import mongoose from "mongoose";
-import apiRoutes from './routes/index';
 import customerRoutes from "./controllers/customerControllers";
+import superAdminRoutes from "./controllers/superAdminControllers";
+import adminRoutes from "./controllers/adminControllers";
 
 const app = express();
 
 // Use CORS middleware
 app.use(cors({
-    origin: 'http://localhost:3000', // Allow only this origin
-    methods: 'GET,POST, PUT, DELETE', // Allow only these methods
-    allowedHeaders: 'Content-Type,Authorization', // Allow only these headers
+    origin: 'http://localhost:3000',
+    methods: 'GET,POST, PUT, DELETE',
+    allowedHeaders: 'Content-Type,Authorization',
 }));
 
 // Middleware to parse JSON bodies
@@ -18,14 +20,13 @@ app.use(express.json());
 
 // Routes
 const default_route = '/api'
-app.use(`${default_route}`, apiRoutes);
+app.use(`${default_route}/superAdmin`, superAdminRoutes)
+app.use(`${default_route}/admin`, adminRoutes)
 app.use(`${default_route}/customer`, customerRoutes)
 
-app.use((err: any, req: any, res: any) => {
+app.use((err: any, req: Request, res: Response) => {
     console.error(err.stack)
-    res.status(422).json({
-        message: err.message
-    })
+    res.status(500).json({ error: true, message: err.message ?? "Server Error" });
 })
 
 // MongoDB connection URI

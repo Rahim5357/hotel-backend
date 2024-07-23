@@ -1,9 +1,11 @@
-import Customer, { CustomerDocument } from "../models/customerModels";
+import express from "express";
 import { Request, Response, Router } from "express";
-import { deleteCustomerService } from "../services/customerServices"
+import { createCustomerService, deleteCustomerService, getCustomerService, updateCustomerService } from "../services/customerServices"
+
+const customerRoutes: Router = express.Router();
 
 // Handler for creating a new customer
-export const createCustomer = async (req: Request, res: Response) => {
+customerRoutes.post("/create", async (req: Request, res: Response) => {
     try {
         const { name, phone_number, email, company_name, institute_name, room_number, bed_number }: {
             name: string;
@@ -15,22 +17,10 @@ export const createCustomer = async (req: Request, res: Response) => {
             bed_number: string;
         } = req.body;
 
-        // Create a new Customer instance
-        const newCustomer: CustomerDocument = new Customer({
-            name,
-            phone_number,
-            email,
-            company_name,
-            institute_name,
-            room_number,
-            bed_number,
-        });
-
-        // Save the Customer to the database
-        await newCustomer.save();
+        const result = await createCustomerService({ name, phone_number, email, company_name, institute_name, room_number, bed_number });
 
         // Send a success response
-        res.status(201).json({ error: false, message: 'Customer registered successfully' });
+        res.status(201).json({ error: result?.error, message: result?.message });
     } catch (err) {
         // Log the error for debugging purposes
         console.error("Creation Error:", err);
@@ -38,10 +28,10 @@ export const createCustomer = async (req: Request, res: Response) => {
         // Send a generic server error response
         res.status(500).json({ error: true, message: "Server Error" });
     }
-};
+})
 
 // Handler for updating an existing customer
-export const updateCustomer = async (req: Request, res: Response) => {
+customerRoutes.put("/update", async (req: Request, res: Response) => {
     try {
         const { id, name, phone_number, email, company_name, institute_name, room_number, bed_number }: {
             id: string;
@@ -55,51 +45,31 @@ export const updateCustomer = async (req: Request, res: Response) => {
         } = req.body;
 
         // Find the Customer by ID and update their details
-        const existingCustomer: CustomerDocument | null = await Customer.findByIdAndUpdate(id, {
-            name,
-            phone_number,
-            email,
-            company_name,
-            institute_name,
-            room_number,
-            bed_number,
-        });
+        const result = await updateCustomerService({ id, name, phone_number, email, company_name, institute_name, room_number, bed_number })
 
-        // Check if the Customer exists
-        if (!existingCustomer) {
-            return res.status(404).json({ error: true, message: 'Customer not found' });
+        if (result && result?.error) {
+            return res.status(404).json({ error: result?.error, message: result?.message });
+        } else {
+            res.status(200).json({ error: result?.error, message: result?.message, data: result?.data });
         }
 
-        // Send a success response
-        res.status(200).json({ error: false, message: 'Customer updated successfully', data: { id, name, phone_number, email, company_name, institute_name, room_number, bed_number } });
     } catch (err) {
-        // Log the error for debugging purposes
-        console.error("Update Error:", err);
-
-        // Send a generic server error response
-        res.status(500).json({ error: true, message: "Server Error" });
+        throw err;
     }
-};
+})
 
 // Handler for retrieving all customers
-export const getCustomer = async (req: Request, res: Response) => {
+customerRoutes.get("/get", async (req: Request, res: Response) => {
     try {
-        // Find all Customer documents
-        const existingCustomers: CustomerDocument[] = await Customer.find();
-
-        // Send a success response with the retrieved customers
-        res.status(200).json({ error: false, message: "Customers retrieved successfully", data: existingCustomers });
+        const result = await getCustomerService()
+        // Send a success response
+        res.status(200).json({ error: result.error, message: result.message, data: result.data });
     } catch (err) {
-        // Log the error for debugging purposes
-        console.error("Retrieval Error:", err);
-
-        // Send a generic server error response
-        res.status(500).json({ error: true, message: "Server Error" });
+        throw err
     }
-};
+})
 
 // Handler for deleting a customer
-const customerRoutes = Router();
 customerRoutes.delete("/delete", async (req: Request, res: Response) => {
     try {
         const { id }: { id: string } = req.body;
@@ -113,11 +83,7 @@ customerRoutes.delete("/delete", async (req: Request, res: Response) => {
         }
 
     } catch (err) {
-        // Log the error for debugging purposes
-        console.error("Deletion Error:", err);
-
-        // Send a generic server error response
-        res.status(500).json({ error: true, message: "Server Error" });
+        throw err
     }
 });
 
